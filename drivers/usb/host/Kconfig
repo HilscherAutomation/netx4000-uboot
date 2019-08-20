@@ -161,6 +161,14 @@ config USB_EHCI_MX7
 	---help---
 	  Enables support for the on-chip EHCI controller on i.MX7 SoCs.
 
+config USB_EHCI_NETX4000
+	bool "Support for netX4000 on-chip EHCI USB controller"
+	depends on ARCH_NETX4000
+	select DM_USB
+	default y
+	---help---
+	  Enables support for the on-chip EHCI controller on netX4000 SoCs.
+
 config USB_EHCI_OMAP
 	bool "Support for OMAP3+ on-chip EHCI USB controller"
 	depends on ARCH_OMAP2PLUS
