@@ -241,6 +241,13 @@ config MXS_SPI
 	  Enable the MXS SPI controller driver. This driver can be used
 	  on the i.MX23 and i.MX28 SoCs.
 
+config NETX4000_QSPI
+	bool "Hilscher netX4000 SQI driver"
+	depends on ARCH_NETX4000
+	depends on DM_SPI
+	help
+	  Enable support for netX4000 SQI unit.
+
 config NXP_FSPI
 	bool "NXP FlexSPI driver"
 	depends on SPI_MEM
