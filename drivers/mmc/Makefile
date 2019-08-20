@@ -37,6 +37,7 @@ obj-$(CONFIG_MVEBU_MMC) += mvebu_mmc.o
 obj-$(CONFIG_MMC_OMAP_HS)		+= omap_hsmmc.o
 obj-$(CONFIG_MMC_MXC)			+= mxcmmc.o
 obj-$(CONFIG_MMC_MXS)			+= mxsmmc.o
+obj-$(CONFIG_MMC_NETX4000)		+= netx4000-mci.o
 obj-$(CONFIG_MMC_OCTEONTX)		+= octeontx_hsmmc.o
 obj-$(CONFIG_MMC_PCI)			+= pci_mmc.o
 obj-$(CONFIG_PXA_MMC_GENERIC) += pxa_mmc_gen.o

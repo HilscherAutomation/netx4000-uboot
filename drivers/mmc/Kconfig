@@ -302,6 +302,15 @@ config MMC_MXS
 
 	  If unsure, say N.
 
+config MMC_NETX4000
+	bool "Hilscher netX4000 SDIO Interface support"
+	depends on ARCH_NETX4000
+	help
+	  This selects the Hilscher netX4000 SDIO controller found on netX4000 based
+	  platforms
+
+	  If unsure, say N.
+
 config MMC_PCI
 	bool "Support for MMC controllers on PCI"
 	help

@@ -840,6 +840,7 @@ config ARCH_NETX4000
 	select DM_SERIAL
 	select PL01X_SERIAL
 	select DM_MMC
+	select MMC_NETX4000
 	select PINCTRL_SINGLE
 	select OF_CONTROL
 	select CLK
