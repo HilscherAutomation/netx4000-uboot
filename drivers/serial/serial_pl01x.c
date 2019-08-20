@@ -35,6 +35,13 @@ static struct pl01x_regs *base_regs __attribute__ ((section(".data")));
 
 #endif
 
+#ifdef CONFIG_ARCH_NETX4000
+#undef readl
+#undef writel
+#define readl readw
+#define writel writew
+#endif
+
 static int pl01x_putc(struct pl01x_regs *regs, char c)
 {
 	/* Wait until there is space in the FIFO */
