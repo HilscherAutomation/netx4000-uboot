@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<HBootImage type="REGULAR">
+	<Chunks>
+		<!-- Open firewall to provide extended access permissions for CA9 (e.g. ADC). -->
+		<Data>
+			<File name="./tools/netx4000/netx4000_cr7_openfirewalls.elf" />
+		</Data>
+		<Execute>
+			<File name="./tools/netx4000/netx4000_cr7_openfirewalls.elf" />
+		</Execute>
+
+		<!-- Load u-boot into CA9 core0 and start afterwards -->
+		<Data>
+			<File name="@uboot_bin" load_address="0x05000000" />
+		</Data>
+		<ExecuteCA9>
+			<Core0>
+				<Address>0x05000000</Address>
+			</Core0>
+		</ExecuteCA9>
+
+		<!-- Set R7 into idle mode -->
+		<Execute>
+			<Address>WFE_Loop</Address>
+		</Execute>
+	</Chunks>
+</HBootImage>

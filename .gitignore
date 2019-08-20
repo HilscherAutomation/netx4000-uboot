@@ -26,6 +26,8 @@
 *.o.*
 *.order
 *.patch
+*.pyc
+*.rom
 *.s
 *.su
 *.swp

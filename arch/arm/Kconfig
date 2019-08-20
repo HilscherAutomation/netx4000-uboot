@@ -833,6 +833,18 @@ config ARCH_LPC32XX
 	select SUPPORT_SPL
 	imply CMD_DM
 
+config ARCH_NETX4000
+	bool "Hilscher netX4000 platform"
+	select CPU_V7A
+	select DM
+	select DM_SERIAL
+	select PL01X_SERIAL
+	select DM_MMC
+	select PINCTRL_SINGLE
+	select OF_CONTROL
+	select CLK
+	select SPL_CLK if SPL
+
 config ARCH_IMX8
 	bool "NXP i.MX8 platform"
 	select ARM64
@@ -1912,6 +1924,8 @@ source "arch/arm/mach-imx/imx8m/Kconfig"
 source "arch/arm/mach-imx/imxrt/Kconfig"
 
 source "arch/arm/mach-imx/mxs/Kconfig"
+
+source "arch/arm/mach-netx4000/Kconfig"
 
 source "arch/arm/mach-omap2/Kconfig"
 

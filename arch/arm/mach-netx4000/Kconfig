@@ -1,0 +1,75 @@
+config NETX4000
+	bool "Hilscher netX4000 SoC support"
+	depends on ARCH_NETX4000
+	select CPU_V7A
+
+menu "netX4000 Boards"
+
+choice
+	prompt "netX4000 board select"
+
+config TARGET_NXHX4000_REV4
+	bool "NXHX4000-JTAG+ Rev.4"
+	help
+	  NXHX4000-JTAG+ Rev. 4 board
+	select NETX4000
+endchoice
+
+choice
+	prompt "DDR RAM Type"
+
+config DDR_RAM_AS4C512M16D3L_12_2GIB
+	bool "2GiB (AS4C512M16D3L-12)"
+
+config DDR_RAM_IS43TR16256AL_1GIB
+	bool "1GiB (IS43TR16256A)"
+
+config DDR_RAM_OUT_OF_TREE
+	bool "Out of tree DDR RAM parameters."
+        help
+	  Select this to provide your own specific DDR RAM timing parameters.
+
+endchoice
+
+config DDR_RAM_OUT_OF_TREE_INCLUDE_400
+	string "Include file for out of tree DDR RAM parameters (400MHz)."
+	default "mach/as4c512m16d3l-12-2gib-400mhz.h"
+	depends on DDR_RAM_OUT_OF_TREE
+
+config DDR_RAM_OUT_OF_TREE_INCLUDE_600
+	string "Include file for out of tree DDR RAM parameters (600MHz)."
+	default "mach/as4c512m16d3l-12-2gib-600mhz"
+	depends on DDR_RAM_OUT_OF_TREE
+
+config DDR400_RAM_INCLUDE
+	string
+	default "mach/as4c512m16d3l-12-2gib-400mhz.h" if DDR_RAM_AS4C512M16D3L_12_2GIB
+	default "mach/is43tr16256al-1gib-400mhz.h" if DDR_RAM_IS43TR16256AL_1GIB
+	default DDR_RAM_OUT_OF_TREE_INCLUDE_400 if DDR_RAM_OUT_OF_TREE
+
+config DDR600_RAM_INCLUDE
+	string
+	default "mach/as4c512m16d3l-12-2gib-600mhz.h" if DDR_RAM_AS4C512M16D3L_12_2GIB
+	default "mach/is43tr16256al-1gib-600mhz.h" if DDR_RAM_IS43TR16256AL_1GIB
+	default DDR_RAM_OUT_OF_TREE_INCLUDE_600 if DDR_RAM_OUT_OF_TREE
+
+config ENABLE_DDR_ECC
+	bool "Enable ecc for DDR-RAM"
+	default n
+	help
+	  Enables ecc for DDR-RAM.
+	  NOTE: This feature will slow down the boot process due to the memory initialization time.
+
+endmenu
+
+config SYS_BOARD
+	default "netx4000"
+
+config SYS_VENDOR
+	default "hilscher"
+
+config SYS_SOC
+	default "netX4000"
+
+config SYS_CONFIG_NAME
+	default "netx4000"

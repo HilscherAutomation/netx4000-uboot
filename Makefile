@@ -929,6 +929,8 @@ ifeq ($(CONFIG_SPL),)
 INPUTS-$(CONFIG_ARCH_MEDIATEK) += u-boot-mtk.bin
 endif
 
+INPUTS-$(CONFIG_ARCH_NETX4000) += u-boot.netx4000
+
 # Add optional build target if defined in board/cpu/soc headers
 ifneq ($(CONFIG_BUILD_TARGET),)
 INPUTS-y += $(CONFIG_BUILD_TARGET:"%"=%)
@@ -1620,6 +1622,18 @@ OBJCOPYFLAGS_u-boot-br.bin := -O binary -j .bootpg -j .resetvec
 u-boot-br.bin: u-boot FORCE
 	$(call if_changed,objcopy)
 endif
+endif
+
+ifeq ($(CONFIG_ARCH_NETX4000),y)
+u-boot.netx4000: u-boot-dtb.bin
+	$(Q)python tools/netx4000/hboot_image_compiler \
+		   -nNETX4000 \
+		   -ptools/netx4000/hboot_netx4000_patch_table.xml \
+		   -Auboot_bin=$< \
+		   --objcopy $(OBJCOPY) --objdump $(OBJDUMP) \
+		   --readelf $(CROSS_COMPILE)readelf \
+		   tools/netx4000/ca9_boot.xml $@
+	$(Q)ln -sf u-boot.netx4000 netx.rom
 endif
 
 quiet_cmd_ldr = LD      $@

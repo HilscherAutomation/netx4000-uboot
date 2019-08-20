@@ -183,6 +183,7 @@ const struct pinctrl_ops single_pinctrl_ops = {
 
 static const struct udevice_id single_pinctrl_match[] = {
 	{ .compatible = "pinctrl-single" },
+	{ .compatible = "pinctrl-single-netx4000" },
 	{ /* sentinel */ }
 };
 
