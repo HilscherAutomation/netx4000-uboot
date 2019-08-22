@@ -3,10 +3,10 @@
 	<Chunks>
 		<!-- Open firewall to provide extended access permissions for CA9 (e.g. ADC). -->
 		<Data>
-			<File name="./tools/netx4000/netx4000_cr7_openfirewalls.elf" />
+			<File name="@open_fw_elf" />
 		</Data>
 		<Execute>
-			<File name="./tools/netx4000/netx4000_cr7_openfirewalls.elf" />
+			<File name="@open_fw_elf" />
 		</Execute>
 
 		<!-- Load u-boot into CA9 core0 and start afterwards -->

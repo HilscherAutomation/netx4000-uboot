@@ -1626,13 +1626,14 @@ endif
 
 ifeq ($(CONFIG_ARCH_NETX4000),y)
 u-boot.netx4000: u-boot-dtb.bin
-	$(Q)python tools/netx4000/hboot_image_compiler \
+	$(Q)python $(src)/tools/netx4000/hboot_image_compiler \
 		   -nNETX4000 \
-		   -ptools/netx4000/hboot_netx4000_patch_table.xml \
+		   -p$(src)/tools/netx4000/hboot_netx4000_patch_table.xml \
 		   -Auboot_bin=$< \
+		   -Aopen_fw_elf=$(src)/tools/netx4000/netx4000_cr7_openfirewalls.elf \
 		   --objcopy $(OBJCOPY) --objdump $(OBJDUMP) \
 		   --readelf $(CROSS_COMPILE)readelf \
-		   tools/netx4000/ca9_boot.xml $@
+		   $(src)/tools/netx4000/ca9_boot.xml $@
 	$(Q)ln -sf u-boot.netx4000 netx.rom
 endif
 
