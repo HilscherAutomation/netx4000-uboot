@@ -233,6 +233,9 @@ dtb-$(CONFIG_ARCH_MVEBU) +=			\
 	armada-xp-synology-ds414.dtb		\
 	armada-xp-theadorable.dtb
 
+dtb-$(CONFIG_ARCH_NETX4000) +=			\
+	netx4000-nxhx4000-jtag-plus-rev4.dtb
+
 dtb-$(CONFIG_ARCH_UNIPHIER_LD11) += \
 	uniphier-ld11-global.dtb \
 	uniphier-ld11-ref.dtb
