@@ -62,6 +62,13 @@ config ENABLE_DDR_ECC
 
 endmenu
 
+config FDL_ADDRESS
+	hex "Memory location of flash device label"
+	default "0x0505f000"
+	help
+	  Setup memory location where to find a flash device label containing device data like MAC
+	  address and board information.
+
 config SYS_BOARD
 	default "netx4000"
 

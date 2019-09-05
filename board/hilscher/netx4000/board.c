@@ -6,6 +6,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <config.h>
+#include "device-label.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -19,6 +20,13 @@ int board_init(void)
 	 * Use default offset 0x100
 	 */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
+
+	return 0;
+}
+
+int misc_init_r(void)
+{
+	read_flash_device_label();
 
 	return 0;
 }

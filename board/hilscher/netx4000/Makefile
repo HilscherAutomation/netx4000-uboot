@@ -2,4 +2,4 @@
 #
 # Copyright 2019 Hilscher Gesellschaft fuer Systemautomation mbH
 
-obj-y	+= board.o
+obj-y	+= board.o device-label.o
