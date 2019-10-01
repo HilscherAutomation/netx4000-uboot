@@ -478,6 +478,13 @@ config MT7621_GPIO
 	help
 	  Say yes here to support MediaTek MT7621 compatible GPIOs.
 
+config NETX4000_GPIO
+	bool "netX4000 GPIO driver"
+	depends on DM_GPIO && ARCH_NETX4000
+	default y
+	help
+	  Supports GPIO access on netX4000 SoC.
+
 config NX_GPIO
 	bool "Nexell GPIO driver"
 	depends on DM_GPIO
