@@ -148,6 +148,48 @@ static int single_set_state(struct udevice *dev,
 	return len;
 }
 
+/* TODO: Implement a mechanism to lock/unlock pins already requested by hardware or a GPIO driver. */
+static int single_gpio_request_enable(struct udevice *dev, unsigned pin_selector)
+{
+	struct single_pdata *pdata = dev->platdata;
+	struct single_fdt_pin_cfg prop[1];
+	struct ofnode_phandle_args args;
+	char *propname = "pinctrl-single,gpio-rangeX";
+	char *cellname = "#pinctrl-single,gpio-range-cells";
+	int idx, range, match = 0;
+
+	/* pinctrl-single,gpio-range */
+	sprintf(propname, "pinctrl-single,gpio-range");
+	for (idx = 0; !dev_read_phandle_with_args(dev, propname, cellname, 0, idx, &args); idx++) {
+		if ((pin_selector >= args.args[0]) && (pin_selector < args.args[0] +  args.args[1])) {
+			prop->val = args.args[2];
+			match = 1;
+		}
+	}
+
+	/* pinctrl-single,gpio-rangeX => X=[0..9] */
+	for (range = 0; range < 10; range ++) {
+		sprintf(propname, "pinctrl-single,gpio-range%d", range);
+		for (idx = 0; !dev_read_phandle_with_args(dev, propname, cellname, 0, idx, &args); idx++) {
+			if ((pin_selector >= args.args[0]) && (pin_selector < args.args[0] +  args.args[1])) {
+				prop->val = args.args[2];
+				match = 1;
+			}
+		}
+	}
+
+	if (!match)
+		return -EINVAL;
+
+	prop->reg = pin_selector * (pdata->width / 8);
+	prop->reg = cpu_to_fdt32(prop->reg);
+	prop->val = cpu_to_fdt32(prop->val);
+
+	single_configure_pins(dev, prop, sizeof(prop));
+
+	return 0;
+}
+
 static int single_ofdata_to_platdata(struct udevice *dev)
 {
 	fdt_addr_t addr;
@@ -179,6 +221,7 @@ static int single_ofdata_to_platdata(struct udevice *dev)
 
 const struct pinctrl_ops single_pinctrl_ops = {
 	.set_state = single_set_state,
+	.gpio_request_enable	= single_gpio_request_enable,
 };
 
 static const struct udevice_id single_pinctrl_match[] = {
