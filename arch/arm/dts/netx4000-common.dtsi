@@ -25,6 +25,8 @@
 		spi0 = &spi0;
 		spi1 = &spi1;
 		mdio-gpio0 = &mdio0;
+		ethernet0 = &gmac0;
+		ethernet1 = &gmac1;
 	};
 
 	environment {
@@ -641,11 +643,10 @@
 			status = "disabled";
 			pinctrl-names = "default";
 			pinctrl-0 = <&rgmii0_pins>;
-			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac";
+			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac", "snps,dwmac-4.20a";
 			reg = <0xf8010000 0x4000>;
-			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
-			clock-names = "apb_pclk", "phy_ref_clk",
-						  "stmmaceth", "pclk";
+			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
+			clock-names = "apb_pclk", "phy_ref_clk", "stmmaceth", "pclk", "mac-clk-rx", "mac-clk-tx";
 			interrupts = <GIC_SPI (106-32) IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI (107-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "macirq", "eth_wake_irq";
@@ -659,11 +660,10 @@
 			status = "disabled";
 			pinctrl-names = "default";
 			pinctrl-0 = <&rgmii1_pins>;
-			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac";
+			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac", "snps,dwmac-4.20a";
 			reg = <0xf8014000 0x4000>;
-			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
-			clock-names = "apb_pclk", "phy_ref_clk",
-						  "stmmaceth", "pclk";
+			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
+			clock-names = "apb_pclk", "phy_ref_clk", "stmmaceth", "pclk", "mac-clk-rx", "mac-clk-tx";
 			interrupts = <GIC_SPI (108-32) IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI (109-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "macirq", "eth_wake_irq";
