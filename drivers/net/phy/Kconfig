@@ -2,6 +2,12 @@
 config BITBANGMII
 	bool "Bit-banged ethernet MII management channel support"
 
+config MDIO_GPIO_BITBANG
+	bool "GPIO based bit-banged MDIO interface"
+	default n
+	help
+	  Enable support for a GPIO based bit-banged MDIO interface.
+
 config MV88E6352_SWITCH
 	bool "Marvell 88E6352 switch support"
 
