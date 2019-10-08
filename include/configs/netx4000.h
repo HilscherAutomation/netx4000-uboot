@@ -26,7 +26,7 @@
 		"load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
-	"bootargs_legacy=root=/dev/mmcblk0p2 rw console=ttyAMA0,115200 earlyprintk\0" \
+	"bootargs_legacy=root=/dev/mmcblk0p2 rw rootwait console=ttyAMA0,115200 earlyprintk\0" \
 	"bootcmd_legacy=load mmc 0:1 ${loadaddr} fitImage; setenv bootargs ${bootargs_legacy}; bootm\0"
 
 #define CONFIG_BOOTCOMMAND	"mmc dev ${mmcdev}; if mmc rescan; then " \
