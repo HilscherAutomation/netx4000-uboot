@@ -11,6 +11,7 @@ import os.path
 import re
 import string
 import subprocess
+import sys
 import tempfile
 import xml.dom.minidom
 import xml.etree.ElementTree
@@ -20,6 +21,17 @@ import option_compiler
 import patch_definitions
 import snippet_library
 
+def py3_array_tobytes(msg):
+    if (sys.version_info >= (3,9)):
+        return msg.tobytes()
+    else:
+        return msg.tostring()
+
+def py3_array_frombytes(msg, data):
+    if (sys.version_info >= (3,9)):
+        return msg.frombytes(data)
+    else:
+        return msg.fromstring(data)
 
 class ResolveDefines(ast.NodeTransformer):
     __atDefines = None
@@ -576,7 +588,7 @@ class HbootImage:
 
         # Get the hash for the image.
         tHash = hashlib.sha224()
-        tHash.update(atChunks.tostring())
+        tHash.update(py3_array_tobytes(atChunks))
         aulHash = array.array('I', tHash.digest())
 
         # Get the parameter0 value.
@@ -763,7 +775,7 @@ class HbootImage:
                 strChunk += chr(usCrc & 0xff)
 
                 aulData = array.array('I')
-                aulData.fromstring(strChunk)
+                py3_array_frombytes(aulData, strChunk)
 
                 atChunk = array.array('I')
                 atChunk.append(self.__get_tag_id('O', 'P', 'T', 'S'))
@@ -780,7 +792,7 @@ class HbootImage:
                 strChunk = strData + strPadding
 
                 aulData = array.array('I')
-                aulData.fromstring(strChunk)
+                py3_array_frombytes(aulData, strChunk)
 
                 atChunk = array.array('I')
                 atChunk.append(self.__get_tag_id('O', 'P', 'T', 'S'))
@@ -803,7 +815,7 @@ class HbootImage:
                 strChunk = strData + strPadding
 
                 aulData = array.array('I')
-                aulData.fromstring(strChunk)
+                py3_array_frombytes(aulData, strChunk)
 
                 atChunk = array.array('I')
                 atChunk.append(self.__get_tag_id('O', 'P', 'T', 'S'))
@@ -1095,7 +1107,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -1417,11 +1429,11 @@ class HbootImage:
 
         # Pad the application size to a multiple of DWORDs.
         strPadding = chr(0x00) * ((4 - (len(strData) % 4)) & 3)
-        strChunk = strData + strPadding
+        strChunk = strData + str.encode(strPadding)
 
         # Convert the padded data to an array.
         aulData = array.array('I')
-        aulData.fromstring(strChunk)
+        py3_array_frombytes(aulData, strChunk)
 
         aulChunk = array.array('I')
         # Do not add an ID for info page images.
@@ -1436,7 +1448,7 @@ class HbootImage:
 
             # Get the hash for the chunk.
             tHash = hashlib.sha384()
-            tHash.update(aulChunk.tostring())
+            tHash.update(py3_array_tobytes(aulChunk))
             strHash = tHash.digest()
             aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
             aulChunk.extend(aulHash)
@@ -1447,7 +1459,7 @@ class HbootImage:
 
             # Get the hash for the chunk.
             tHash = hashlib.sha384()
-            tHash.update(aulChunk.tostring())
+            tHash.update(py3_array_tobytes(aulChunk))
             strHash = tHash.digest()
 
         tChunkAttributes['fIsFinished'] = True
@@ -1466,7 +1478,7 @@ class HbootImage:
 
         # Convert the padded text to an array.
         aulData = array.array('I')
-        aulData.fromstring(strChunk)
+        py3_array_frombytes(aulData, strChunk)
 
         aulChunk = array.array('I')
         aulChunk.append(self.__get_tag_id('T', 'E', 'X', 'T'))
@@ -1475,7 +1487,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -1587,7 +1599,7 @@ class HbootImage:
 
         # Convert the padded data to an array.
         aulData = array.array('I')
-        aulData.fromstring(strChunk)
+        py3_array_frombytes(aulData, strChunk)
 
         aulChunk = array.array('I')
         aulChunk.append(self.__get_tag_id('T', 'E', 'X', 'T'))
@@ -1596,7 +1608,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -1776,7 +1788,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -1843,7 +1855,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -1881,7 +1893,7 @@ class HbootImage:
 
         # Convert the padded data to an array.
         aulData = array.array('I')
-        aulData.fromstring(strChunk)
+        py3_array_frombytes(aulData, strChunk)
 
         aulChunk = array.array('I')
         aulChunk.append(self.__get_tag_id('S', 'P', 'I', 'M'))
@@ -1890,7 +1902,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -2035,7 +2047,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -2957,7 +2969,7 @@ class HbootImage:
 
             # Convert the padded data to an array.
             aulData = array.array('I')
-            aulData.fromstring(strChunk)
+            py3_array_frombytes(aulData, strChunk)
 
             aulChunk = array.array('I')
             aulChunk.append(self.__get_tag_id('R', 'C', 'R', 'T'))
@@ -3126,7 +3138,7 @@ class HbootImage:
 
             # Convert the padded data to an array.
             aulData = array.array('I')
-            aulData.fromstring(strChunk)
+            py3_array_frombytes(aulData, strChunk)
 
             aulChunk = array.array('I')
             aulChunk.append(self.__get_tag_id('L', 'C', 'R', 'T'))
@@ -3321,7 +3333,7 @@ class HbootImage:
 
             # Convert the padded data to an array.
             aulData = array.array('I')
-            aulData.fromstring(strChunk)
+            py3_array_frombytes(aulData, strChunk)
 
             aulChunk = array.array('I')
             aulChunk.append(self.__get_tag_id('R', '7', 'S', 'W'))
@@ -3551,7 +3563,7 @@ class HbootImage:
 
             # Convert the padded data to an array.
             aulData = array.array('I')
-            aulData.fromstring(strChunk)
+            py3_array_frombytes(aulData, strChunk)
 
             aulChunk = array.array('I')
             aulChunk.append(self.__get_tag_id('A', '9', 'S', 'W'))
@@ -3584,7 +3596,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -3834,7 +3846,7 @@ class HbootImage:
 
             # Get the hash for the chunk.
             tHash = hashlib.sha384()
-            tHash.update(aulChunk.tostring())
+            tHash.update(py3_array_tobytes(aulChunk))
             strHash = tHash.digest()
             aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
             aulChunk.extend(aulHash)
@@ -3933,7 +3945,7 @@ class HbootImage:
 
             # Write the data to sign to the temporary file.
             tFile = open(strPathSignatureInputData, 'wb')
-            tFile.write(aulChunk.tostring())
+            tFile.write(py3_array_tobytes(aulChunk))
             tFile.close()
 
             if iKeyTyp_1ECC_2RSA == 1:
@@ -4312,7 +4324,7 @@ class HbootImage:
 
                 # Write the data to sign to the temporary file.
                 tFile = open(strPathSignatureInputData, 'wb')
-                tFile.write(aulChunk.tostring())
+                tFile.write(py3_array_tobytes(aulChunk))
                 tFile.close()
 
                 if iKeyTyp_1ECC_2RSA == 1:
@@ -4416,7 +4428,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -4459,7 +4471,7 @@ class HbootImage:
 
         # Get the hash for the chunk.
         tHash = hashlib.sha384()
-        tHash.update(aulChunk.tostring())
+        tHash.update(py3_array_tobytes(aulChunk))
         strHash = tHash.digest()
         aulHash = array.array('I', strHash[:self.__sizHashDw * 4])
         aulChunk.extend(aulHash)
@@ -5271,7 +5283,7 @@ class HbootImage:
 
             # Build the hash for the info page.
             tHash = hashlib.sha384()
-            tHash.update(atChunks.tostring())
+            tHash.update(py3_array_tobytes(atChunks))
             strHash = tHash.digest()
             aulHash = array.array('I', strHash)
             atChunks.extend(aulHash)

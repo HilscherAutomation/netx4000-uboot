@@ -1626,7 +1626,7 @@ endif
 
 ifeq ($(CONFIG_ARCH_NETX4000),y)
 u-boot.netx4000: u-boot-dtb.bin
-	$(Q)python $(src)/tools/netx4000/hboot_image_compiler \
+	$(Q)python3 $(src)/tools/netx4000/hboot_image_compiler \
 		   -nNETX4000 \
 		   -p$(src)/tools/netx4000/hboot_netx4000_patch_table.xml \
 		   -Auboot_bin=$< \

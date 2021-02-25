@@ -32,7 +32,7 @@ def get_segment_table(env, strFileName, astrSegmentsToConsider=None):
     atSegments = []
     aCmd = [env['OBJDUMP'], '-h', '-w', strFileName]
     proc = subprocess.Popen(aCmd, stdout=subprocess.PIPE)
-    strOutput = proc.communicate()[0]
+    strOutput = proc.communicate()[0].decode("ascii")
     for match_obj in re.finditer('[ \t]*([0-9]+)[ \t]+([^ \t]+)[ \t]+([0-9a-fA-F]+)[ \t]+([0-9a-fA-F]+)[ \t]+([0-9a-fA-F]+)[ \t]+([0-9a-fA-F]+)[ \t]+([0-9*]+)[ \t]+([a-zA-Z ,]+)', strOutput):
         strName = match_obj.group(2)
         if (astrSegmentsToConsider is None) or (strName in astrSegmentsToConsider):
@@ -54,7 +54,7 @@ def get_segment_table(env, strFileName, astrSegmentsToConsider=None):
 def get_symbol_table(env, strFileName):
     aCmd = [env['READELF'], '--symbols', '--wide', strFileName]
     proc = subprocess.Popen(aCmd, stdout=subprocess.PIPE)
-    strOutput = proc.communicate()[0]
+    strOutput = proc.communicate()[0].decode("ascii")
 
     atSymbols = dict({})
 
@@ -73,7 +73,7 @@ def get_symbol_table(env, strFileName):
 def get_debug_structure(env, strFileName):
     aCmd = [env['READELF'], '--debug-dump=info', strFileName]
     proc = subprocess.Popen(aCmd, stdout=subprocess.PIPE)
-    strOutput = proc.communicate()[0]
+    strOutput = proc.communicate()[0].decode("ascii")
 
     time_start = datetime.datetime.now()
 
@@ -203,7 +203,7 @@ def get_debug_symbols(env, strFileName):
 def get_macro_definitions(env, strFileName):
     aCmd = [env['READELF'], '--debug-dump=macro', strFileName]
     proc = subprocess.Popen(aCmd, stdout=subprocess.PIPE)
-    strOutput = proc.communicate()[0]
+    strOutput = proc.communicate()[0].decode("ascii")
 
     time_start = datetime.datetime.now()
 
@@ -279,14 +279,14 @@ def get_exec_address(env, strElfFileName):
     tResult = None
     aCmd0 = [env['READELF'], '--syms', strElfFileName]
     proc = subprocess.Popen(aCmd0, stdout=subprocess.PIPE)
-    strOutput0 = proc.communicate()[0]
+    strOutput0 = proc.communicate()[0].decode("ascii")
     match_obj = re.search('\s+\d+:\s+([0-9a-fA-F]+)\s+\d+\s+\w+\s+GLOBAL\s+DEFAULT\s+\d+\s+start', strOutput0)
     if match_obj is not None:
         tResult = int(match_obj.group(1), 16)
     else:
         aCmd1 = [env['READELF'], '--file-header', strElfFileName]
         proc = subprocess.Popen(aCmd1, stdout=subprocess.PIPE)
-        strOutput1 = proc.communicate()[0]
+        strOutput1 = proc.communicate()[0].decode("ascii")
         match_obj = re.search('Entry point address:\s+0x([0-9a-fA-F]+)', strOutput1)
         if match_obj is not None:
             tResult = int(match_obj.group(1), 16)
