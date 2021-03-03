@@ -1,11 +1,22 @@
-// SPDX-License-Identifier: GPL-2.0+
 /*
- * Common device tree for Hilscher netX4000 based platforms
- *
- * (C) Copyright 2018 Hilscher Gesellschaft fuer Systemautomation mbH
- * http://www.hilscher.com
- *
- */
+* Common device tree for Hilscher netX4000 based platforms
+*
+* arch/arm/boot/dts/netx4000-common.dtsi
+*
+* (C) Copyright 2017 Hilscher Gesellschaft fuer Systemautomation mbH
+* http://www.hilscher.com
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License as
+* published by the Free Software Foundation; version 2 of
+* the License.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+*/
 
 #include "dt-bindings/pinctrl/netx4000.h"
 #include "dt-bindings/video/netx4000.h"
@@ -24,15 +35,11 @@
 		serial3 = &uart3;
 		spi0 = &spi0;
 		spi1 = &spi1;
-		mdio-gpio0 = &mdio0;
 		ethernet0 = &gmac0;
 		ethernet1 = &gmac1;
-	};
-
-	environment {
-		compatible = "barebox,environment";
-		device-path = &sdmmc0, "partname:0";
-		file-path = "bareboxenv";
+		/* CAUTION: Only use eth2/3 if no R7 firmware is running */
+		ethernet2 = &xceth0;
+		ethernet3 = &xceth1;
 	};
 
 	/* CPU */
@@ -137,9 +144,7 @@
 			clock-frequency = <(100 * 1000 * 1000)>;
 			clock-mask = <0x01>;
 		};
-		/* NOTE: This gated clock comprises clk133_pcie_aclk and
-		 *	 clk133_pcie_clk_pmu
-		 */
+		/* NOTE: This gated clock comprises clk133_pcie_aclk and clk133_pcie_clk_pmu */
 		pcie_clk: pcie_clk {
 			compatible = "hilscher,netx4000-periph-clock";
 			#clock-cells = <0>;
@@ -155,9 +160,7 @@
 			clock-frequency = <(100 * 1000 * 1000)>;
 			clock-mask = <0x04>;
 		};
-		/* NOTE: This gated clock comprises clk150_a9_gmac,
-		 *	 clk125_eth_gmac, clk25_eth_gmac and clk2_5_eth_gmac
-		 */
+		/* NOTE: This gated clock comprises clk150_a9_gmac, clk125_eth_gmac, clk25_eth_gmac and clk2_5_eth_gmac */
 		gmac_clk: gmac_clk {
 			compatible = "hilscher,netx4000-periph-clock";
 			#clock-cells = <0>;
@@ -165,10 +168,7 @@
 			clock-frequency = <(150 * 1000 * 1000)>;
 			clock-mask = <0x08>;
 		};
-		/* NOTE: This gated clock comprises clk200_r7_eswitch,
-		 * clk100_r7_eswitch, clk125_eth_eswitch,
-		 * clk25_eth_eswitch and clk2_5_eth_eswitch
-		 */
+		/* NOTE: This gated clock comprises clk200_r7_eswitch, clk100_r7_eswitch, clk125_eth_eswitch, clk25_eth_eswitch and clk2_5_eth_eswitch */
 		switch_clk: switch_clk {
 			compatible = "hilscher,netx4000-periph-clock";
 			#clock-cells = <0>;
@@ -176,9 +176,7 @@
 			clock-frequency = <(200 * 1000 * 1000)>;
 			clock-mask = <0x10>;
 		};
-		/* NOTE: This gated clock comprises clk_pixclk(1000)
-		 *	 and clk150_a9_tes
-		 */
+		/* NOTE: This gated clock comprises clk_pixclk(1000) and clk150_a9_tes */
 		gfx_clk: gfx_clk {
 			compatible = "hilscher,netx4000-periph-clock";
 			#clock-cells = <0>;
@@ -186,30 +184,45 @@
 			clock-frequency = <(1*1000*1000*1000)>;
 			clock-mask = <0x20>;
 		};
-		/* NOTE: This gated clock comprises clk600_a9_ddr,
-		 *	 clk300_a9_ddr and clk150_a9_ddr
-		 */
-//		ddr_clk: ddr_clk {
-//			compatible = "hilscher,netx4000-periph-clock";
-//			#clock-cells = <0>;
-//			clock-output-names = "ddr_clk";
-//			clock-frequency = <(600 * 1000 * 1000)>;
-//			clock-mask = <0x40>;
-//		};
+		/* NOTE: This gated clock comprises clk600_a9_ddr, clk300_a9_ddr and clk150_a9_ddr */
+// 		ddr_clk: ddr_clk {
+// 			compatible = "hilscher,netx4000-periph-clock";
+// 			#clock-cells = <0>;
+// 			clock-output-names = "ddr_clk";
+// 			clock-frequency = <(600 * 1000 * 1000)>;
+// 			clock-mask = <0x40>;
+// 		};
 	};
 
-	/* Bitbang MDIO device */
-	mdio0: mdio0 {
-		status = "disabled";
-		compatible = "virtual,mdio-gpio";
+	netx4000_xc: netx4000_xc {
+		status = "okay";
+		compatible = "hilscher,netx4000-xc";
+	};
+
+	mdio_xc0: mdio_xc0 {
+		status = "okay";
+		compatible = "hilscher,netx4000-mdio-xc0";
 		#address-cells = <1>;
 		#size-cells = <0>;
-		gpios = <&gpio4 1 GPIO_ACTIVE_HIGH &gpio4 0 GPIO_ACTIVE_HIGH>; /* MDC, MDIO */
+		reg = <0xf4023a90 0x10>;
+		intphy_id = <0>;
 
-		phy0: phy0 {
+		intphy0: phy {
+			phy-mode = "internal";
 			reg = <0>;
 		};
-		phy1: phy1 {
+	};
+
+	mdio_xc1: mdio_xc1 {
+		status = "okay";
+		compatible = "hilscher,netx4000-mdio-xc1";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0xf4023aa0 0x10>;
+		intphy_id = <1>;
+
+		intphy1: phy {
+			phy-mode = "internal";
 			reg = <1>;
 		};
 	};
@@ -229,15 +242,15 @@
 			compatible = "renesas,nbpfaxi64dmac8b16";
 			reg = <0xf8019000 0x400>;
 			interrupts = <GIC_SPI (80-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (64-32) IRQ_TYPE_LEVEL_HIGH>,<0 (65-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (66-32) IRQ_TYPE_LEVEL_HIGH>,<0 (67-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (68-32) IRQ_TYPE_LEVEL_HIGH>,<0 (69-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (70-32) IRQ_TYPE_LEVEL_HIGH>,<0 (71-32) IRQ_TYPE_LEVEL_HIGH>;
+			             <GIC_SPI (64-32) IRQ_TYPE_LEVEL_HIGH>,<0 (65-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (66-32) IRQ_TYPE_LEVEL_HIGH>,<0 (67-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (68-32) IRQ_TYPE_LEVEL_HIGH>,<0 (69-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (70-32) IRQ_TYPE_LEVEL_HIGH>,<0 (71-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "error",
-					  "chan0","chan1",
-					  "chan2","chan3",
-					  "chan4","chan5",
-					  "chan6","chan7";
+			                  "chan0","chan1",
+			                  "chan2","chan3",
+			                  "chan4","chan5",
+			                  "chan6","chan7";
 			#dma-cells = <2>;
 			dma-channels = <8>;
 			dma-requests = <8>;
@@ -248,15 +261,15 @@
 			compatible = "renesas,nbpfaxi64dmac8b16";
 			reg = <0xf8019400 0x400>;
 			interrupts = <GIC_SPI (80-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (72-32) IRQ_TYPE_LEVEL_HIGH>,<0 (73-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (74-32) IRQ_TYPE_LEVEL_HIGH>,<0 (75-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (76-32) IRQ_TYPE_LEVEL_HIGH>,<0 (77-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (78-32) IRQ_TYPE_LEVEL_HIGH>,<0 (79-32) IRQ_TYPE_LEVEL_HIGH>;
+			             <GIC_SPI (72-32) IRQ_TYPE_LEVEL_HIGH>,<0 (73-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (74-32) IRQ_TYPE_LEVEL_HIGH>,<0 (75-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (76-32) IRQ_TYPE_LEVEL_HIGH>,<0 (77-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (78-32) IRQ_TYPE_LEVEL_HIGH>,<0 (79-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "error",
-					  "chan8","chan9",
-					  "chan10","chan11",
-					  "chan12","chan13",
-					  "chan14","chan15";
+			                  "chan8","chan9",
+			                  "chan10","chan11",
+			                  "chan12","chan13",
+			                  "chan14","chan15";
 			#dma-cells = <2>;
 			dma-channels = <8>;
 			dma-requests = <8>;
@@ -275,17 +288,17 @@
 			compatible = "hilscher,edac-cache-dc-netx4000";
 			reg = <0xf0200000 0x90>;
 			interrupts = <GIC_SPI (36-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (37-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (38-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (39-32) IRQ_TYPE_LEVEL_HIGH>,
-				  <GIC_SPI (40-32) IRQ_TYPE_EDGE_RISING>,
-				     <GIC_SPI (41-32) IRQ_TYPE_EDGE_RISING>;
+			             <GIC_SPI (37-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (38-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (39-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (40-32) IRQ_TYPE_EDGE_RISING>,
+			             <GIC_SPI (41-32) IRQ_TYPE_EDGE_RISING>;
 			interrupt-names = "sbe-core0",
-					  "sbe-core1",
-					  "dbe-core0",
-					  "dbe-core1",
-					  "sbe-pl310",
-					  "dbe-pl310";
+			                  "sbe-core1",
+			                  "dbe-core0",
+			                  "dbe-core1",
+			                  "sbe-pl310",
+			                  "dbe-pl310";
 		};
 
 		/* PINCTRL */
@@ -337,7 +350,6 @@
 			device_type = "serial";
 			reg = <0xf8036000 0x1000>;
 			interrupts = <GIC_SPI (138-32) IRQ_TYPE_LEVEL_HIGH>;
-			clock = <100000000>;
 			clocks = <&periph_clk>;
 			clock-names = "apb_pclk";
 		};
@@ -348,7 +360,6 @@
 			device_type = "serial";
 			reg = <0xf8037000 0x1000>;
 			interrupts = <GIC_SPI (139-32) IRQ_TYPE_LEVEL_HIGH>;
-			clock = <100000000>;
 			clocks = <&periph_clk>;
 			clock-names = "apb_pclk";
 		};
@@ -359,7 +370,6 @@
 			device_type = "serial";
 			reg = <0xf8038000 0x1000>;
 			interrupts = <GIC_SPI (140-32) IRQ_TYPE_LEVEL_HIGH>;
-			clock = <100000000>;
 			clocks = <&periph_clk>;
 			clock-names = "apb_pclk";
 		};
@@ -370,7 +380,6 @@
 			device_type = "serial";
 			reg = <0xf8039000 0x1000>;
 			interrupts = <GIC_SPI (141-32) IRQ_TYPE_LEVEL_HIGH>;
-			clock = <100000000>;
 			clocks = <&periph_clk>;
 			clock-names = "apb_pclk";
 		};
@@ -386,8 +395,9 @@
 			#gpio-cells = <2>;
 
 			gpio-ranges = <&pinctrl 0 (MUX_PIN(10,10)/4) 1>,
-				      <&pinctrl 1 (MUX_PIN(3,1)/4) 15>,
-				      <&pinctrl 16 (MUX_PIN(7,1)/4) 8>;
+			              // <&pinctrl 1 (MUX_PIN(3,5)/4) 15>, // Use this line instead to use all pins as GPIOs
+			              <&pinctrl 5 (MUX_PIN(3,5)/4) 11>,    // Use this line when using xc port
+			              <&pinctrl 16 (MUX_PIN(7,1)/4) 8>;
 		};
 
 		gpio1: gpio@f801f100 {
@@ -399,8 +409,8 @@
 			#gpio-cells = <2>;
 
 			gpio-ranges = <&pinctrl 0 (MUX_PIN(4,0)/4) 16>,
-				      <&pinctrl 16 (MUX_PIN(11,0)/4) 8>,
-				      <&pinctrl 24 (MUX_PIN(14,0)/4) 2>;
+			              <&pinctrl 16 (MUX_PIN(11,0)/4) 8>,
+			              <&pinctrl 24 (MUX_PIN(14,0)/4) 2>;
 		};
 
 		gpio2: gpio@f801f200 {
@@ -412,7 +422,7 @@
 			#gpio-cells = <2>;
 
 			gpio-ranges = <&pinctrl 0 (MUX_PIN(5,0)/4) 16>,
-				      <&pinctrl 16 (MUX_PIN(6,0)/4) 16>;
+			              <&pinctrl 16 (MUX_PIN(6,0)/4) 16>;
 		};
 
 		gpio3: gpio@f801f300 {
@@ -424,10 +434,10 @@
 			#gpio-cells = <2>;
 
 			gpio-ranges = <&pinctrl 0 (MUX_PIN(12,0)/4) 16>,
-				      <&pinctrl 16 (MUX_PIN(13,0)/4) 12>,
-				      <&pinctrl 28 (MUX_PIN(8,15)/4) 1>,
-				      <&pinctrl 29 (MUX_PIN(10,2)/4) 1>,
-				      <&pinctrl 30 (MUX_PIN(9,0)/4) 1>;
+			              <&pinctrl 16 (MUX_PIN(13,0)/4) 12>,
+			              <&pinctrl 28 (MUX_PIN(8,15)/4) 1>,
+			              <&pinctrl 29 (MUX_PIN(10,2)/4) 1>,
+			              <&pinctrl 30 (MUX_PIN(9,0)/4) 1>;
 		};
 
 		gpio4: gpio@f801f400 {
@@ -438,9 +448,9 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 
-			gpio-ranges = <&pinctrl 0 (MUX_PIN(15,0)/4) 14>,
-				      <&pinctrl 14 (MUX_PIN(16,0)/4) 12>,
-				      <&pinctrl 26 (MUX_PIN(2,0)/4) 2>;
+			gpio-ranges = <&pinctrl 0 (MUX_PIN(15,2)/4) 14>,
+			              <&pinctrl 14 (MUX_PIN(16,0)/4) 12>,
+			              <&pinctrl 26 (MUX_PIN(2,0)/4) 2>;
 		};
 
 		/* I2C */
@@ -610,27 +620,27 @@
 			compatible = "hilscher,netx4000-can";
 			reg = <0xf8030000 0x4000>;
 			interrupts = <GIC_SPI (110-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (111-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (112-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (113-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (114-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (115-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (116-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (117-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (118-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (119-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (120-32) IRQ_TYPE_LEVEL_HIGH>;
+			             <GIC_SPI (111-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (112-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (113-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (114-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (115-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (116-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (117-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (118-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (119-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (120-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "cherrint0",
-					  "cherrint1",
-					  "cherrint2",
-					  "rxfint",
-					  "comfrxint0",
-					  "comfrxint1",
-					  "comfrxint2",
-					  "glerrint",
-					  "txint0",
-					  "txint1",
-					  "txint2";
+			                  "cherrint1",
+			                  "cherrint2",
+			                  "rxfint",
+			                  "comfrxint0",
+			                  "comfrxint1",
+			                  "comfrxint2",
+			                  "glerrint",
+			                  "txint0",
+			                  "txint1",
+			                  "txint2";
 			clocks = <&periph_clk>;
 			clock_select = <0>; /* CLKR_CLKC */
 
@@ -642,30 +652,46 @@
 		gmac0: gmac@f8010000 {
 			status = "disabled";
 			pinctrl-names = "default";
-			pinctrl-0 = <&rgmii0_pins>;
-			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac", "snps,dwmac-4.20a";
+			pinctrl-0 = <&rgmii0_pins &gmac0_mdio_pins>;
+			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac";
 			reg = <0xf8010000 0x4000>;
-			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
-			clock-names = "apb_pclk", "phy_ref_clk", "stmmaceth", "pclk", "mac-clk-rx", "mac-clk-tx";
-			interrupts = <GIC_SPI (106-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (107-32) IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
+			clock-names = "apb_pclk", "phy_ref_clk", /* phy_ref_clk is unused/unsupported at 'nxhx4000 jtag plus' board */
+						  "stmmaceth", "pclk"; /* clocks are renamed to 'stmmaceth' and 'pclk' since kernel 4.14 */
+			interrupts = <GIC_SPI (106-32) IRQ_TYPE_LEVEL_HIGH>, <GIC_SPI (107-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "macirq", "eth_wake_irq";
 
 			phy-handle = <&phy0>;
 			phy-mode = "rgmii-id";
 			mac-address = [00 00 00 00 00 00]; /* will be filled by bootloader */
+
+			mdio {
+				compatible = "snps,dwc-qos-ethernet-mdio";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				phy0: phy0@0 {
+					compatible = "ethernet-phy-ieee802.3-c22";
+					device_type = "ethernet-phy";
+					reg = <0>;
+				};
+				phy1: phy1@1 {
+					compatible = "ethernet-phy-ieee802.3-c22";
+					device_type = "ethernet-phy";
+					reg = <1>;
+				};
+			};
 		};
 
 		gmac1: gmac@f8014000 {
 			status = "disabled";
 			pinctrl-names = "default";
 			pinctrl-0 = <&rgmii1_pins>;
-			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac", "snps,dwmac-4.20a";
+			compatible = "snps,dwc-qos-ethernet-4.10", "hilscher,netx4000-gmac";
 			reg = <0xf8014000 0x4000>;
-			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
-			clock-names = "apb_pclk", "phy_ref_clk", "stmmaceth", "pclk", "mac-clk-rx", "mac-clk-tx";
-			interrupts = <GIC_SPI (108-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (109-32) IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&gmac_clk>, <&gmac_clk>, <&gmac_clk>, <&gmac_clk>;
+			clock-names = "apb_pclk", "phy_ref_clk", /* phy_ref_clk is unused/unsupported at 'nxhx4000 jtag plus' board */
+						  "stmmaceth", "pclk"; /* clocks are renamed to 'stmmaceth' and 'pclk' since kernel 4.14 */
+			interrupts = <GIC_SPI (108-32) IRQ_TYPE_LEVEL_HIGH>, <GIC_SPI (109-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "macirq", "eth_wake_irq";
 
 			phy-handle = <&phy1>;
@@ -683,17 +709,17 @@
 			pinctrl-names = "default";
 			pinctrl-0 = <&pvo_rgb888_pins>;
 			interrupts = <GIC_SPI (90-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (91-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (92-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (93-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (94-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (95-32) IRQ_TYPE_LEVEL_HIGH>;
+			             <GIC_SPI (91-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (92-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (93-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (94-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (95-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "bus_error",
-					  "fifo_underrun",
-					  "reg_reload",
-					  "scanline",
-					  "video_no_start",
-					  "video_not_in_sync";
+			                  "fifo_underrun",
+			                  "reg_reload",
+			                  "scanline",
+			                  "video_no_start",
+			                  "video_not_in_sync";
 		};
 
 		/* Memory Controller */
@@ -704,9 +730,6 @@
 			reg = <0xf8003000 0x1000>;
 			clocks = <&periph_clk>;
 			clock-names = "apb_pclk";
-			#address-cells = <1>;
-			#size-cells = <1>;
-			ranges;
 		};
 
 		/* SD/MMC */
@@ -730,7 +753,7 @@
 
 		/* PCIe root complex */
 
-		pcie_rc: pcie@f8050000 {
+		pcie_rc: pci_rc@f8050000 {
 			status = "disabled";
 			compatible = "hilscher,netx4000-pcie-rc";
 			reg = <0xf8050000 0x4000>;
@@ -740,23 +763,23 @@
 			max-link-speed = <2>;
 
 			interrupts = <GIC_SPI (97-32)  IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (98-32)  IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (99-32)  IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (100-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (101-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (102-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (103-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (104-32) IRQ_TYPE_LEVEL_HIGH>,
-				     <GIC_SPI (105-32) IRQ_TYPE_LEVEL_HIGH>;
+			             <GIC_SPI (98-32)  IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (99-32)  IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (100-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (101-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (102-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (103-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (104-32) IRQ_TYPE_LEVEL_HIGH>,
+			             <GIC_SPI (105-32) IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "all",
-					  "dma",
-					  "msi_rc",
-					  "serr",
-					  "err_cor",
-					  "err_fatal",
-					  "err_nonfatal",
-					  "msg",
-					  "pcie_evt";
+			                  "dma",
+			                  "msi_rc",
+			                  "serr",
+			                  "err_cor",
+			                  "err_fatal",
+			                  "err_nonfatal",
+			                  "msg",
+			                  "pcie_evt";
 
 			clocks = <&pcie_clk>;
 
@@ -770,19 +793,71 @@
 			//        0x02: Mem  (64bit)      (64bit)
 			//        0x40: pref
 			ranges = <0x02000000 0 0xC0000000 0xC0000000 0 0x10000000   /* non-prefetchable memory (256M) */
-				  0x42000000 0 0xD0000000 0xD0000000 0 0x10000000>; /* prefetchable memory (256M) */
+			          0x42000000 0 0xD0000000 0xD0000000 0 0x10000000>; /* prefetchable memory (256M) */
 
 			#interrupt-cells = <1>;
 			interrupt-map-mask = <0 0 0 0x7>;
 			interrupt-map = <0 0 0 1 &pcie_intc 1>, /* inta */
-					<0 0 0 2 &pcie_intc 2>, /* intb */
-					<0 0 0 3 &pcie_intc 3>, /* intc */
-					<0 0 0 4 &pcie_intc 4>; /* intd */
+			                <0 0 0 2 &pcie_intc 2>, /* intb */
+			                <0 0 0 3 &pcie_intc 3>, /* intc */
+			                <0 0 0 4 &pcie_intc 4>; /* intd */
 
 			pcie_intc: irq-controller@pcie {
 				interrupt-controller;
 				#address-cells = <0>;
 				#interrupt-cells = <1>;
+			};
+		};
+
+		/* XC Port (ethernet)
+		   CAUTION: Only use, when no R7 firmware is running */
+
+		xceth0: xceth0 {
+			status = "disabled";
+			compatible = "hilscher,netx4000-xceth0";
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&xc0_pins &netx_xc0_pins>;
+
+			phy-handle = <&intphy0>;
+
+			port = <0>;
+			xc_res = "xc0";/* array of xc refs */
+
+			interrupt-parent = <&gic>;
+			interrupts = <GIC_SPI (206-32) IRQ_TYPE_LEVEL_HIGH>;
+
+			mac-address = [00 00 00 00 00 00]; /* will be filled by bootloader */
+		};
+
+		xceth1: xceth1 {
+			status = "disabled";
+			compatible = "hilscher,netx4000-xceth1";
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&xc1_pins &netx_xc1_pins>;
+
+			phy-handle = <&intphy1>;
+
+			port = <1>;
+			xc_res = "xc1";/* array of xc refs */
+
+			interrupt-parent = <&gic>;
+			interrupts = <GIC_SPI (207-32) IRQ_TYPE_LEVEL_HIGH>;
+
+			mac-address = [00 00 00 00 00 00]; /* will be filled by bootloader */
+		};
+
+		netx_pinctrl: pinctrl@f4080400 {
+			compatible = "pinctrl-single-netx4000";
+			reg = <0xf4080400 0x400>;
+			pinctrl-single,register-width = <32>;
+			pinctrl-single,function-mask = <0xffff>;
+
+			#address-cells = <1>;
+			#size-cells = <0>;
+			keyaccess-control {
+				reg = <0xf408017c 0x4>;
 			};
 		};
 	};
@@ -1080,5 +1155,33 @@
 			MUX_PIN(10,10)  (REEMUX_2 | REEMUX_DRV_06MA | REEMUX_UDC_PULLDOWN50K)  // PL353_DATA15
 		>;
 	};
+
+	xc0_pins: xc0_pins {
+		pinctrl-single,pins = <
+			MUX_PIN(3,1)  (REEMUX_0 | REEMUX_DRV_04MA | REEMUX_UDC_NONE | REEMUX_CTL(0x8))  // mmio1 / phy0activity
+			MUX_PIN(3,2)  (REEMUX_0 | REEMUX_DRV_04MA | REEMUX_UDC_NONE | REEMUX_CTL(0x8))  // mmio2 / phy0link
+		>;
+	};
+
+	xc1_pins: xc1_pins {
+		pinctrl-single,pins = <
+			MUX_PIN(3, 3)  (REEMUX_0 | REEMUX_DRV_04MA | REEMUX_UDC_NONE | REEMUX_CTL(0x8))  // mmio3 / phy1activity
+			MUX_PIN(3, 4)  (REEMUX_0 | REEMUX_DRV_04MA | REEMUX_UDC_NONE | REEMUX_CTL(0x8))  // mmio4 / phy1link
+		>;
+	};
 };
 
+&netx_pinctrl {
+	netx_xc0_pins: xc0_pins {
+		pinctrl-single,pins = <
+				MMIO(1) (MMIO_OUT_INV | PHY0_LED_PHY_CTRL_LNK)
+				MMIO(2) (MMIO_OUT_INV | PHY0_LED_PHY_CTRL_ACT)
+		>;
+	};
+	netx_xc1_pins: xc1_pins {
+		pinctrl-single,pins = <
+				MMIO(3) (MMIO_OUT_INV | PHY1_LED_PHY_CTRL_LNK)
+				MMIO(4) (MMIO_OUT_INV | PHY1_LED_PHY_CTRL_ACT)
+		>;
+	};
+};
