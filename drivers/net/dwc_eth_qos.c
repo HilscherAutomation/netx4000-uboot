@@ -654,6 +654,31 @@ err:
 #endif
 }
 
+static int eqos_start_clks_netx4000(struct udevice *dev)
+{
+#ifdef CONFIG_CLK
+	struct eqos_priv *eqos = dev_get_priv(dev);
+	int ret;
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	ret = clk_enable(&eqos->clk_master_bus);
+	if (ret < 0) {
+		pr_err("clk_enable(clk_master_bus) failed: %d", ret);
+		goto err;
+	}
+#endif
+
+	debug("%s: OK\n", __func__);
+	return 0;
+
+#ifdef CONFIG_CLK
+err:
+	debug("%s: FAILED: %d\n", __func__, ret);
+	return ret;
+#endif
+}
+
 static int eqos_start_clks_imx(struct udevice *dev)
 {
 	return 0;
@@ -688,6 +713,19 @@ static void eqos_stop_clks_stm32(struct udevice *dev)
 	clk_disable(&eqos->clk_master_bus);
 	if (clk_valid(&eqos->clk_ck))
 		clk_disable(&eqos->clk_ck);
+#endif
+
+	debug("%s: OK\n", __func__);
+}
+
+static void eqos_stop_clks_netx4000(struct udevice *dev)
+{
+#ifdef CONFIG_CLK
+	struct eqos_priv *eqos = dev_get_priv(dev);
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	clk_disable(&eqos->clk_master_bus);
 #endif
 
 	debug("%s: OK\n", __func__);
@@ -765,6 +803,11 @@ static int eqos_start_resets_stm32(struct udevice *dev)
 	return 0;
 }
 
+static int eqos_start_resets_netx4000(struct udevice *dev)
+{
+	return 0;
+}
+
 static int eqos_start_resets_imx(struct udevice *dev)
 {
 	return 0;
@@ -794,6 +837,11 @@ static int eqos_stop_resets_stm32(struct udevice *dev)
 		}
 	}
 
+	return 0;
+}
+
+static int eqos_stop_resets_netx4000(struct udevice *dev)
+{
 	return 0;
 }
 
@@ -876,6 +924,17 @@ static ulong eqos_get_tick_clk_rate_stm32(struct udevice *dev)
 #endif
 }
 
+static ulong eqos_get_tick_clk_rate_netx4000(struct udevice *dev)
+{
+#ifdef CONFIG_CLK
+	struct eqos_priv *eqos = dev_get_priv(dev);
+
+	return clk_get_rate(&eqos->clk_master_bus);
+#else
+	return 0;
+#endif
+}
+
 __weak u32 imx_get_eqos_csr_clk(void)
 {
 	return 100 * 1000000;
@@ -895,12 +954,22 @@ static int eqos_calibrate_pads_stm32(struct udevice *dev)
 	return 0;
 }
 
+static int eqos_calibrate_pads_netx4000(struct udevice *dev)
+{
+	return 0;
+}
+
 static int eqos_calibrate_pads_imx(struct udevice *dev)
 {
 	return 0;
 }
 
 static int eqos_disable_calibration_stm32(struct udevice *dev)
+{
+	return 0;
+}
+
+static int eqos_disable_calibration_netx4000(struct udevice *dev)
 {
 	return 0;
 }
@@ -1007,6 +1076,11 @@ static int eqos_set_tx_clk_speed_tegra186(struct udevice *dev)
 }
 
 static int eqos_set_tx_clk_speed_stm32(struct udevice *dev)
+{
+	return 0;
+}
+
+static int eqos_set_tx_clk_speed_netx4000(struct udevice *dev)
 {
 	return 0;
 }
@@ -1887,10 +1961,79 @@ err_probe:
 	return ret;
 }
 
+static int eqos_probe_resources_netx4000(struct udevice *dev)
+{
+	struct eqos_priv *eqos = dev_get_priv(dev);
+	int ret;
+	phy_interface_t interface;
+	struct ofnode_phandle_args phandle_args;
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	interface = eqos->config->interface(dev);
+
+	if (interface == PHY_INTERFACE_MODE_NONE) {
+		pr_err("Invalid PHY interface\n");
+		return -EINVAL;
+	}
+
+	ret = board_interface_eth_init(dev, interface);
+	if (ret)
+		return -EINVAL;
+
+	eqos->max_speed = dev_read_u32_default(dev, "max-speed", 0);
+
+	ret = clk_get_by_name(dev, "stmmaceth", &eqos->clk_master_bus);
+	if (ret) {
+		pr_err("clk_get_by_name(master_bus) failed: %d", ret);
+		goto err_probe;
+	}
+
+	eqos->phyaddr = -1;
+	ret = dev_read_phandle_with_args(dev, "phy-handle", NULL, 0, 0,
+					 &phandle_args);
+	if (!ret) {
+		/* search "reset-gpios" in phy node */
+		ret = gpio_request_by_name_nodev(phandle_args.node,
+						 "reset-gpios", 0,
+						 &eqos->phy_reset_gpio,
+						 GPIOD_IS_OUT |
+						 GPIOD_IS_OUT_ACTIVE);
+		if (ret)
+			pr_warn("gpio_request_by_name(phy reset) not provided %d",
+				ret);
+
+		eqos->phyaddr = ofnode_read_u32_default(phandle_args.node,
+							"reg", -1);
+	}
+
+	debug("%s: OK\n", __func__);
+	return 0;
+
+err_probe:
+
+	debug("%s: returns %d\n", __func__, ret);
+	return ret;
+}
+
 static phy_interface_t eqos_get_interface_stm32(struct udevice *dev)
 {
 	const char *phy_mode;
 	phy_interface_t interface = PHY_INTERFACE_MODE_NONE;
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	phy_mode = dev_read_prop(dev, "phy-mode", NULL);
+	if (phy_mode)
+		interface = phy_get_interface_by_name(phy_mode);
+
+	return interface;
+}
+
+static phy_interface_t eqos_get_interface_netx4000(struct udevice *dev)
+{
+	const char *phy_mode;
+	phy_interface_t interface = PHY_INTERFACE_MODE_RGMII_ID;
 
 	debug("%s(dev=%p):\n", __func__, dev);
 
@@ -1970,6 +2113,23 @@ static int eqos_remove_resources_stm32(struct udevice *dev)
 	clk_free(&eqos->clk_master_bus);
 	if (clk_valid(&eqos->clk_ck))
 		clk_free(&eqos->clk_ck);
+#endif
+
+	if (dm_gpio_is_valid(&eqos->phy_reset_gpio))
+		dm_gpio_free(dev, &eqos->phy_reset_gpio);
+
+	debug("%s: OK\n", __func__);
+	return 0;
+}
+
+static int eqos_remove_resources_netx4000(struct udevice *dev)
+{
+#ifdef CONFIG_CLK
+	struct eqos_priv *eqos = dev_get_priv(dev);
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	clk_free(&eqos->clk_master_bus);
 #endif
 
 	if (dm_gpio_is_valid(&eqos->phy_reset_gpio))
@@ -2163,6 +2323,33 @@ struct eqos_config __maybe_unused eqos_imx_config = {
 	.ops = &eqos_imx_ops
 };
 
+static struct eqos_ops eqos_netx4000_ops = {
+	.eqos_inval_desc = eqos_inval_desc_generic,
+	.eqos_flush_desc = eqos_flush_desc_generic,
+	.eqos_inval_buffer = eqos_inval_buffer_generic,
+	.eqos_flush_buffer = eqos_flush_buffer_generic,
+	.eqos_probe_resources = eqos_probe_resources_netx4000,
+	.eqos_remove_resources = eqos_remove_resources_netx4000,
+	.eqos_stop_resets = eqos_stop_resets_netx4000,
+	.eqos_start_resets = eqos_start_resets_netx4000,
+	.eqos_stop_clks = eqos_stop_clks_netx4000,
+	.eqos_start_clks = eqos_start_clks_netx4000,
+	.eqos_calibrate_pads = eqos_calibrate_pads_netx4000,
+	.eqos_disable_calibration = eqos_disable_calibration_netx4000,
+	.eqos_set_tx_clk_speed = eqos_set_tx_clk_speed_netx4000,
+	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_netx4000
+};
+
+struct eqos_config __maybe_unused eqos_netx4000_config = {
+	.reg_access_always_ok = false,
+	.mdio_wait = 10000,
+	.swr_wait = 50,
+	.config_mac = EQOS_MAC_RXQ_CTRL0_RXQ0EN_ENABLED_DCB,
+	.config_mac_mdio = EQOS_MAC_MDIO_ADDRESS_CR_250_300,
+	.interface = eqos_get_interface_netx4000,
+	.ops = &eqos_netx4000_ops
+};
+
 static const struct udevice_id eqos_ids[] = {
 #if IS_ENABLED(CONFIG_DWC_ETH_QOS_TEGRA186)
 	{
@@ -2180,6 +2367,12 @@ static const struct udevice_id eqos_ids[] = {
 	{
 		.compatible = "fsl,imx-eqos",
 		.data = (ulong)&eqos_imx_config
+	},
+#endif
+#if IS_ENABLED(CONFIG_DWC_ETH_QOS_NETX4000)
+	{
+		.compatible = "hilscher,netx4000-gmac",
+		.data = (ulong)&eqos_netx4000_config
 	},
 #endif
 

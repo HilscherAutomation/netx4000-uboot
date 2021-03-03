@@ -165,6 +165,14 @@ config DWC_ETH_QOS_IMX
 	  The Synopsys Designware Ethernet QOS IP block with the specific
 	  configuration used in IMX soc.
 
+config DWC_ETH_QOS_NETX4000
+	bool "Synopsys DWC Ethernet QOS device support for netX4000"
+	depends on DWC_ETH_QOS
+	default y if ARCH_NETX4000P
+	help
+	  The Synopsys Designware Ethernet QOS IP block with the specific
+	  configuration used in Hilscher netX4000 soc.
+
 config DWC_ETH_QOS_STM32
 	bool "Synopsys DWC Ethernet QOS device support for STM32"
 	depends on DWC_ETH_QOS
