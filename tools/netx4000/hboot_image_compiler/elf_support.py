@@ -58,7 +58,7 @@ def get_symbol_table(env, strFileName):
 
     atSymbols = dict({})
 
-    reSymbol = re.compile('\s+\d+:\s([0-9a-fA-F]+)\s+[0-9a-fA-F]+\s+\w+\s+GLOBAL\s+\w+\s+\d+\s+([\S]+)')
+    reSymbol = re.compile('\s+\d+:\s([0-9a-fA-F]+)\s+[0-9a-fA-F]+\s+\w+\s+GLOBAL\s+\w+\s+\w+\s+([\S]+)')
 
     for strLine in strOutput.split(os.linesep):
         tObj = reSymbol.match(strLine)
